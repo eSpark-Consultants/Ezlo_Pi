@@ -201,6 +201,7 @@ static void __broadcast_loop(void *arg)
                     trace_obj->free_heap = esp_get_free_heap_size();
                     trace_obj->heap_watermark = esp_get_minimum_free_heap_size();
                     trace_obj->name = EZPI_core_brodcast_source_to_name(__broadcast_data->source);
+                    TRACE_E("name = ---------------------%s", trace_obj->name);
                     trace_obj->tick_count = xTaskGetTickCount();
 
                     trace_obj->id = id_str;

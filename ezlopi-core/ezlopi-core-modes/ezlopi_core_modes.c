@@ -1127,7 +1127,7 @@ ezlopi_error_t EZPI_core_modes_set_unset_device_armed_status(cJSON *cj_device_ar
                                 // 2. CALL : "EZPI_device_updated" broadcast for devices: switced from [ armed --> disarmed ]
                                 EZPI_device_updated(cj_device_armed_broadcast, cj_response);
 
-                                if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_response, EZPI_core_sntp_get_current_time_sec()))
+                                if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_response, EZPI_core_sntp_get_current_time_sec()))
                                 {
                                     // TRACE_E("freeing cj_response");
                                     cJSON_Delete(__func__, cj_response);

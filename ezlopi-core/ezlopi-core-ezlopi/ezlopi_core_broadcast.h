@@ -94,6 +94,7 @@ extern "C"
 
     typedef ezlopi_error_t (*f_broadcast_queue_func_t)(s_broadcast_struct_t *broadcast_data);
 
+    #define EZPI_core_broadcast_add_to_queue_websocket(cj_data, ts) EZPI_core_broadcast_add_to_queue(cj_data, ts, E_BROADCAST_SOURCE_WSS_CLIENT)
     /*******************************************************************************
      *                          Extern Data Declarations
      *******************************************************************************/
@@ -115,7 +116,7 @@ extern "C"
      * @param cj_data Pointer to data to be added into queue
      * @return ezlopi_error_t
      */
-    ezlopi_error_t EZPI_core_broadcast_add_to_queue(cJSON *cj_data, time_t time_stamp);
+    ezlopi_error_t EZPI_core_broadcast_add_to_queue(cJSON *cj_data, time_t time_stamp, e_broadcast_source_t source);
     /**
      * @brief Funtion to remove broadcast method from ll
      *

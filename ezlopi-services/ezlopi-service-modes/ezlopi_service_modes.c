@@ -173,7 +173,7 @@ static void __broadcast_modes_alarmed_for_uid(const char *dev_id_str)
     cJSON *cj_alarm_mesg = EZPI_core_modes_cjson_prep_alarm_mesg(dev_id_str);
     // CJSON_TRACE("----------------- broadcasting - cj_alarm_mesg", cj_alarm_mesg);
 
-    if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_alarm_mesg, EZPI_core_sntp_get_current_time_sec()))
+    if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_alarm_mesg, EZPI_core_sntp_get_current_time_sec()))
     {
         cJSON_Delete(__FUNCTION__, cj_alarm_mesg);
     }
@@ -477,7 +477,7 @@ static ezlopi_error_t __check_mode_switch_condition(s_ezlopi_modes_t *ez_mode)
                     EZPI_core_modes_store_to_nvs();
                     cJSON *cj_update = EZPI_core_modes_cjson_changed();
 
-                    if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_update, EZPI_core_sntp_get_current_time_sec()))
+                    if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_update, EZPI_core_sntp_get_current_time_sec()))
                     {
                         cJSON_Delete(__FUNCTION__, cj_update);
                     }

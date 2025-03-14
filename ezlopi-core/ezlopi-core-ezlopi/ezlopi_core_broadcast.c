@@ -137,7 +137,7 @@ const char *EZPI_core_brodcast_source_to_name(e_broadcast_source_t source)
     return ret;
 }
 
-ezlopi_error_t EZPI_core_broadcast_add_to_queue(cJSON *cj_data, time_t time_stamp)
+ezlopi_error_t EZPI_core_broadcast_add_to_queue(cJSON *cj_data, time_t time_stamp, e_broadcast_source_t source)
 {
     ezlopi_error_t ret = EZPI_ERR_BROADCAST_FAILED;
 
@@ -151,7 +151,7 @@ ezlopi_error_t EZPI_core_broadcast_add_to_queue(cJSON *cj_data, time_t time_stam
             broadcast_data->time_stamp = time_stamp;
             broadcast_data->cj_broadcast_data = cj_data;
             broadcast_data->tick_count = xTaskGetTickCount();
-            broadcast_data->source = E_BROADCAST_SOURCE_NONE;
+            broadcast_data->source = source;
 
             ret = __broadcast_queue_func(broadcast_data);
         }

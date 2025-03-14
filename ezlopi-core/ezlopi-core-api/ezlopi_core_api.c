@@ -141,7 +141,7 @@ cJSON *EZPI_core_api_consume_cjson(const char *who, cJSON *cj_request, time_t ti
                         // cJSON_AddNumberToObject(__FUNCTION__, cj_update_response, ezlopi_startTime_str, EZPI_core_sntp_get_current_time_sec());
                         // cJSON_AddNullToObject(__FUNCTION__, cj_update_response, ezlopi_error_str);
 
-                        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_update_response, time_stamp))
+                        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_update_response, time_stamp))
                         {
                             cJSON_Delete(__FUNCTION__, cj_update_response);
                         }

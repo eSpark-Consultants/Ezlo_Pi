@@ -238,7 +238,7 @@ ezlopi_error_t EZPI_core_send_cloud_log(int severity, const char *log_str)
                     memset(severity_str, 0, 10);
                     snprintf(severity_str, 10, "%s", ezlopi_log_severity_enum[severity]);
                     cJSON_AddStringToObject(__FUNCTION__, cj_result, ezlopi_severity_str, severity_str);
-                    if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_log_broadcast, timestamp))
+                    if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_log_broadcast, timestamp))
                     {
                         cJSON_Delete(__FUNCTION__, cj_log_broadcast);
                     }

@@ -131,7 +131,7 @@ int EZPI_core_scenes_status_change_broadcast(l_scenes_list_v2_t *scene_node, con
             CJSON_TRACE("----------------- broadcasting - cj_response", cj_response);
 #endif
 
-            ret = EZPI_core_broadcast_add_to_queue(cj_response, time_stamp);
+            ret = EZPI_core_broadcast_add_to_queue_websocket(cj_response, time_stamp);
 
             if (0 != ret)
             {

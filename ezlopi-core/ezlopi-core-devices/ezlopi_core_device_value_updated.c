@@ -113,7 +113,7 @@ ezlopi_error_t EZPI_core_device_value_updated_from_device_broadcast(l_ezlopi_ite
 
                     if (cj_response)
                     {
-                        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_response, EZPI_core_sntp_get_current_time_sec()))
+                        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_response, EZPI_core_sntp_get_current_time_sec()))
                         {
                             ret = EZPI_FAILED;
                             cJSON_Delete(__FUNCTION__, cj_response);
@@ -155,7 +155,7 @@ ezlopi_error_t EZPI_core_device_value_updated_from_device_broadcast_by_item_id(u
                 CJSON_TRACE("----------------- broadcasting - cj_response", cj_response);
 #endif
 
-                ret = EZPI_core_broadcast_add_to_queue(cj_response, EZPI_core_sntp_get_current_time_sec());
+                ret = EZPI_core_broadcast_add_to_queue_websocket(cj_response, EZPI_core_sntp_get_current_time_sec());
                 if (EZPI_SUCCESS != ret)
                 {
                     ret = EZPI_FAILED;
@@ -193,7 +193,7 @@ ezlopi_error_t EZPI_core_device_value_updated_settings_broadcast(l_ezlopi_device
 #ifdef CONFIG_EZPI_UTIL_TRACE_EN
                     CJSON_TRACE("----------------- broadcasting - cj_response", cj_response);
 #endif
-                    ret = EZPI_core_broadcast_add_to_queue(cj_response, EZPI_core_sntp_get_current_time_sec());
+                    ret = EZPI_core_broadcast_add_to_queue_websocket(cj_response, EZPI_core_sntp_get_current_time_sec());
 
                     if (EZPI_SUCCESS != ret)
                     {
@@ -276,7 +276,7 @@ ezlopi_error_t EZPI_core_device_value_update_wifi_scan_broadcast(cJSON *network_
             CJSON_TRACE("----------------- broadcasting - cj_response", cj_response);
 #endif
 
-            ret = EZPI_core_broadcast_add_to_queue(cj_response, EZPI_core_sntp_get_current_time_sec());
+            ret = EZPI_core_broadcast_add_to_queue_websocket(cj_response, EZPI_core_sntp_get_current_time_sec());
 
             if (EZPI_SUCCESS != ret)
             {

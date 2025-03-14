@@ -153,7 +153,7 @@ void EZPI_cloud_modes_changed_alarmed(cJSON *cj_request, cJSON *cj_response)
     if (cj_changed_resp)
     {
         EZPI_cloud_modes_changed(cj_request, cj_changed_resp);
-        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
+        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
         {
             cJSON_Delete(__FUNCTION__, cj_changed_resp);
         }
@@ -187,7 +187,7 @@ void EZPI_cloud_modes_disarmed_devices_added(cJSON *cj_request, cJSON *cj_respon
     if (cj_changed_resp)
     {
         EZPI_cloud_modes_changed(cj_request, cj_changed_resp);
-        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
+        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
         {
             cJSON_Delete(__FUNCTION__, cj_changed_resp);
         }
@@ -221,7 +221,7 @@ void EZPI_cloud_modes_disarmed_devices_removed(cJSON *cj_request, cJSON *cj_resp
     if (cj_changed_resp)
     {
         EZPI_cloud_modes_changed(cj_request, cj_changed_resp);
-        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
+        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
         {
             cJSON_Delete(__FUNCTION__, cj_changed_resp);
         }
@@ -255,7 +255,7 @@ void EZPI_cloud_modes_alarms_off_added(cJSON *cj_request, cJSON *cj_response)
     if (cj_changed_resp)
     {
         EZPI_cloud_modes_changed(cj_request, cj_changed_resp);
-        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
+        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
         {
             cJSON_Delete(__FUNCTION__, cj_changed_resp);
         }
@@ -289,7 +289,7 @@ void EZPI_cloud_modes_alarms_off_removed(cJSON *cj_request, cJSON *cj_response)
     if (cj_changed_resp)
     {
         EZPI_cloud_modes_changed(cj_request, cj_changed_resp);
-        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
+        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
         {
             cJSON_Delete(__FUNCTION__, cj_changed_resp);
         }
@@ -323,7 +323,7 @@ void EZPI_cloud_modes_cameras_off_added(cJSON *cj_request, cJSON *cj_response)
     if (cj_changed_resp)
     {
         EZPI_cloud_modes_changed(cj_request, cj_changed_resp);
-        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
+        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
         {
             cJSON_Delete(__FUNCTION__, cj_changed_resp);
         }
@@ -357,7 +357,7 @@ void EZPI_cloud_modes_cameras_off_removed(cJSON *cj_request, cJSON *cj_response)
     if (cj_changed_resp)
     {
         EZPI_cloud_modes_changed(cj_request, cj_changed_resp);
-        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
+        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_changed_resp, EZPI_core_sntp_get_current_time_sec()))
         {
             cJSON_Delete(__FUNCTION__, cj_changed_resp);
         }
@@ -521,7 +521,7 @@ void EZPI_cloud_modes_protect_button_set_broadcast(cJSON *cj_request, cJSON *cj_
     if (cj_added_resp)
     {
         EZPI_cloud_modes_protect_buttons_added(cj_request, cj_added_resp);
-        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_added_resp, EZPI_core_sntp_get_current_time_sec()))
+        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_added_resp, EZPI_core_sntp_get_current_time_sec()))
         {
             cJSON_Delete(__FUNCTION__, cj_added_resp);
         }
@@ -532,7 +532,7 @@ void EZPI_cloud_modes_protect_button_set_broadcast(cJSON *cj_request, cJSON *cj_
     if (cj_updated_resp)
     {
         EZPI_cloud_modes_protect_buttons_updated(cj_request, cj_updated_resp);
-        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue(cj_updated_resp, EZPI_core_sntp_get_current_time_sec()))
+        if (EZPI_SUCCESS != EZPI_core_broadcast_add_to_queue_websocket(cj_updated_resp, EZPI_core_sntp_get_current_time_sec()))
         {
             cJSON_Delete(__FUNCTION__, cj_updated_resp);
         }
