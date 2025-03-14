@@ -110,6 +110,15 @@ extern "C"
     } e_ezlopi_uart_cmd_status_t;
 
     /**
+     * @brief Struct to map UART enum values to strings
+     *
+     */
+    typedef struct {
+        e_ezlopi_uart_cmd_t cmd;
+        const char* str;
+    } ezlopi_uart_cmd_map_t;
+
+    /**
      * @brief Function to initialize UART task
      *
      */

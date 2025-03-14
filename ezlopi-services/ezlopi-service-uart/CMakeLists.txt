@@ -25,6 +25,7 @@ set(EZLOPI_CLOUD_COMPONENTS
 
 set(EZLOPI_SERVICE_COMPONENTS
         ezlopi-service-ble
+        ezlopi-service-otel
 )
 
 idf_component_register(SRCS "ezlopi_service_uart.c" "${src_files}"

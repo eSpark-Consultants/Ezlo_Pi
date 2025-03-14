@@ -141,7 +141,8 @@ static void __broadcast_loop(void *arg)
                 char *error_str = ezlopi_service_otel_fetch_string_value_from_cjson(__broadcast_data->cj_broadcast_data, ezlopi_error_str);
                 char *method_str = ezlopi_service_otel_fetch_string_value_from_cjson(__broadcast_data->cj_broadcast_data, ezlopi_method_str);
                 char *msg_subclass_str = ezlopi_service_otel_fetch_string_value_from_cjson(__broadcast_data->cj_broadcast_data, ezlopi_msg_subclass_str);
-
+                char* name;
+                asprintf(&name, "cloud broadcast : %s", method_str);
 #if 0
                 cJSON *cj_id = cJSON_GetObjectItem(__FUNCTION__, __broadcast_data->cj_broadcast_data, ezlopi_id_str);
                 if (cj_id && cj_id->valuestring && (cj_id->type == cJSON_String) && cj_id->str_value_len)
@@ -200,8 +201,8 @@ static void __broadcast_loop(void *arg)
                     trace_obj->end_time = EZPI_core_sntp_get_current_time_sec();
                     trace_obj->free_heap = esp_get_free_heap_size();
                     trace_obj->heap_watermark = esp_get_minimum_free_heap_size();
-                    trace_obj->name = EZPI_core_brodcast_source_to_name(__broadcast_data->source);
-                    TRACE_E("name = ---------------------%s", trace_obj->name);
+                    // trace_obj->name = EZPI_core_brodcast_source_to_name(__broadcast_data->source);
+                    trace_obj->name = name;
                     trace_obj->tick_count = xTaskGetTickCount();
 
                     trace_obj->id = id_str;
@@ -213,6 +214,7 @@ static void __broadcast_loop(void *arg)
                     error_str = NULL;
                     method_str = NULL;
                     msg_subclass_str = NULL;
+                    name = NULL;
 
                     if (0 == ezlopi_service_otel_add_trace_to_telemetry_queue(trace_obj))
                     {
@@ -220,6 +222,7 @@ static void __broadcast_loop(void *arg)
                         error_str = trace_obj->error;               // re-assigning to free in case adding to queue fails
                         method_str = trace_obj->method;             // re-assigning to free in case adding to queue fails
                         msg_subclass_str = trace_obj->msg_subclass; // re-assigning to free in case adding to queue fails
+                        name = trace_obj->name; // re-assigning to free in case adding to queue fails
 
                         ezlopi_free(__FUNCTION__, trace_obj);
                     }
@@ -229,6 +232,7 @@ static void __broadcast_loop(void *arg)
                 ezlopi_free(__FUNCTION__, error_str);
                 ezlopi_free(__FUNCTION__, method_str);
                 ezlopi_free(__FUNCTION__, msg_subclass_str);
+                ezlopi_free(__FUNCTION__, name);
 #endif
             }
 

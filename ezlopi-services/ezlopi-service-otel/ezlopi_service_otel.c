@@ -225,6 +225,12 @@ static void __otel_publish(cJSON *cj_telemetry)
     }
 }
 
+static int __message_upcall(char *payload, uint32_t len, time_t time_stamp)
+{
+    TRACE_D("Otel Response: %s", payload);
+    return 0;
+}
+
 static void __otel_task(void *pv)
 {
     EZPI_core_wait_for_wifi_to_connect(portTICK_RATE_MS);
@@ -235,7 +241,7 @@ static void __otel_task(void *pv)
     {
         while (1)
         {
-            __wss_client = EZPI_core_websocket_client_init(cjson_uri, NULL, __connection_upcall, NULL, NULL, NULL);
+            __wss_client = EZPI_core_websocket_client_init(cjson_uri, __message_upcall, __connection_upcall, NULL, NULL, NULL);
             if (NULL != __wss_client)
             {
                 break;
@@ -848,6 +854,7 @@ static void __free_telemetry_queue_data(s_otel_queue_data_t *otel_data)
             if (otel_data->otel.trace_data)
             {
                 ezlopi_free(__FUNCTION__, otel_data->otel.trace_data->id);
+                ezlopi_free(__FUNCTION__, otel_data->otel.trace_data->name);
                 ezlopi_free(__FUNCTION__, otel_data->otel.trace_data->error);
                 ezlopi_free(__FUNCTION__, otel_data->otel.trace_data->method);
                 ezlopi_free(__FUNCTION__, otel_data->otel.trace_data->msg_subclass);

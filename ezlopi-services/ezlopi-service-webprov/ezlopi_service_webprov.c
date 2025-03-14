@@ -259,6 +259,7 @@ static void __fetch_wss_endpoint(void *pv)
                     char *id_str = NULL;
                     char *error_str = NULL;
                     char *method_str = NULL;
+                    char *name = NULL;
 
                     time_t time_stamp = rx_message->time_stamp;
                     uint32_t tick_count = rx_message->tick_count;
@@ -273,6 +274,7 @@ static void __fetch_wss_endpoint(void *pv)
                             id_str = ezlopi_service_otel_fetch_string_value_from_cjson(cj_request, ezlopi_id_str);
                             error_str = ezlopi_service_otel_fetch_string_value_from_cjson(cj_request, ezlopi_error_str);
                             method_str = ezlopi_service_otel_fetch_string_value_from_cjson(cj_request, ezlopi_method_str);
+                            asprintf(&name, "cloud response : %s", method_str);
 #endif
 
 #ifdef CONFIG_EZPI_OPENTELEMETRY_ENABLE_LOGS
@@ -303,6 +305,7 @@ static void __fetch_wss_endpoint(void *pv)
                         trace_obj->start_time = time_stamp;
                         trace_obj->tick_count = tick_count;
                         trace_obj->end_time = EZPI_core_sntp_get_current_time_sec();
+                        trace_obj->name = name;
 
                         trace_obj->free_heap = esp_get_free_heap_size();
                         trace_obj->heap_watermark = esp_get_minimum_free_heap_size();
@@ -314,12 +317,14 @@ static void __fetch_wss_endpoint(void *pv)
                         id_str = NULL;
                         error_str = NULL;
                         method_str = NULL;
+                        name = NULL;
 
                         if (0 == ezlopi_service_otel_add_trace_to_telemetry_queue(trace_obj))
                         {
                             id_str = trace_obj->id;
                             error_str = trace_obj->error;
                             method_str = trace_obj->method;
+                            name = trace_obj->name;
                             ezlopi_free(__FUNCTION__, trace_obj);
                         }
                     }
@@ -327,6 +332,7 @@ static void __fetch_wss_endpoint(void *pv)
                     ezlopi_free(__FUNCTION__, id_str);
                     ezlopi_free(__FUNCTION__, error_str);
                     ezlopi_free(__FUNCTION__, method_str);
+                    ezlopi_free(__FUNCTION__, name);
 #endif
                 }
 

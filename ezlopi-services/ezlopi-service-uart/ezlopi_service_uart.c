@@ -89,6 +89,7 @@
 #include "ezlopi_service_uart.h"
 #include "ezlopi_service_loop.h"
 #include "ezlopi_service_webprov.h"
+#include "ezlopi_service_otel.h"
 
 #include "EZLOPI_USER_CONFIG.h"
 
@@ -139,6 +140,8 @@
 #define RXD_PIN (GPIO_NUM_44)
 #endif
 
+// Calculate the number of elements in the map array
+#define EZLOPI_UART_CMD_MAP_SIZE (sizeof(ezlopi_uart_cmd_map) / sizeof(ezlopi_uart_cmd_map[0]))
 /*******************************************************************************
  *                          Static Function Prototypes
  *******************************************************************************/
@@ -270,7 +273,20 @@ static void ezpi_service_uart_get_config(void);
  */
 // static void __uart_loop(void *arg);
 static void ezpi_service_uart_task(void *arg);
-
+/**
+ * @brief Create and submit an OpenTelemetry trace
+ *
+ * @param cmd flasher commmand
+ * @param start_time Start timestamp
+ *
+ * @return int 1 on success, 0 on failure
+ */
+static int ezlopi_create_uart_otel_trace(e_ezlopi_uart_cmd_t cmd,uint64_t start_time);
+/**
+ * @brief Convert UART command to string
+ * @return const char*
+ */
+static const char* ezlopi_uart_cmd_to_string(e_ezlopi_uart_cmd_t cmd);
 #if !defined(CONFIG_IDF_TARGET_ESP32) && !defined(CONFIG_IDF_TARGET_ESP32C3)
 /**
  * @brief Function that will be called on incoming data at CDC
@@ -283,6 +299,20 @@ static void ezpi_tinyusb_cdc_rx_callback(int itf, cdcacm_event_t *event);
 /*******************************************************************************
  *                          Static Data Definitions
  *******************************************************************************/
+
+// Initialize the mapping array
+static const ezlopi_uart_cmd_map_t ezlopi_uart_cmd_map[] = {
+    {EZPI_UART_CMD_RESET, "Flasher Reset Command"},
+    {EZPI_UART_CMD_INFO, "Flasher Info Command"},
+    {EZPI_UART_CMD_WIFI, "Flasher WiFi Command"},
+    {EZPI_UART_CMD_SET_CONFIG, "Flasher Set Configuration Command"},
+    {EZPI_UART_CMD_GET_CONFIG, "Flasher Get Configuration Command"},
+    {EZPI_UART_CMD_UART_CONFIG, "Flasher UART Configuration Command"},
+    {EZPI_UART_CMD_LOG_CONFIG, "Flasher Log Configuration Command"},
+    {EZPI_UART_CMD_SET_PROV, "Flasher Set Provisioning Command"},
+    {EZPI_UART_CMD_MAX, "Flasher Maximum Command Value"}
+};
+
 #if !defined(CONFIG_IDF_TARGET_ESP32) && !defined(CONFIG_IDF_TARGET_ESP32C3)
 static uint8_t usb_rx_buffer[CONFIG_TINYUSB_CDC_RX_BUFSIZE - 1];
 static size_t rx_buffer_pointer = 0;
@@ -692,9 +722,54 @@ static void ezpi_service_uart_task(void *arg)
     vTaskDelete(NULL);
 }
 
+static const char* ezlopi_uart_cmd_to_string(e_ezlopi_uart_cmd_t cmd)
+{
+    for (size_t i = 0; i < EZLOPI_UART_CMD_MAP_SIZE; i++)
+    {
+        if (ezlopi_uart_cmd_map[i].cmd == cmd)
+        {
+            return ezlopi_uart_cmd_map[i].str;
+        }
+    }
+    return "Unknown Command";
+}
+
+static int ezlopi_create_uart_otel_trace(e_ezlopi_uart_cmd_t cmd, uint64_t start_time)
+{
+#ifdef CONFIG_EZPI_OPENTELEMETRY_ENABLE_TRACES
+    s_otel_trace_t *trace_obj = ezlopi_malloc(__FUNCTION__, sizeof(s_otel_trace_t));
+    if (!trace_obj)
+    {
+        return 0; 
+    }
+
+    memset(trace_obj, 0, sizeof(s_otel_trace_t));
+
+    trace_obj->kind = E_OTEL_KIND_SERVER;
+    trace_obj->start_time = start_time;
+    trace_obj->end_time = EZPI_core_sntp_get_current_time_sec();
+    trace_obj->free_heap = esp_get_free_heap_size();
+    trace_obj->heap_watermark = esp_get_minimum_free_heap_size();
+    asprintf(&trace_obj->name, "uart response : %s", ezlopi_uart_cmd_to_string(cmd));
+    trace_obj->tick_count = xTaskGetTickCount();
+
+    if (0 == ezlopi_service_otel_add_trace_to_telemetry_queue(trace_obj))
+    {
+        ezlopi_free(__FUNCTION__, trace_obj->name);
+        ezlopi_free(__FUNCTION__, trace_obj);
+        return 0;
+    }
+    TRACE_D("UART trace created successfully.");
+    return 1;
+#else
+    return 0;
+#endif
+}
+
 static int ezpi_service_uart_parser(const char *data)
 {
     cJSON *cj_root = cJSON_Parse(__FUNCTION__, data);
+    uint64_t start_time = EZPI_core_sntp_get_current_time_sec();
 
     if (cj_root)
     {
@@ -750,6 +825,10 @@ static int ezpi_service_uart_parser(const char *data)
                 TRACE_E("Invalid command!");
                 break;
             }
+
+            TRACE_E("starting-----------!");
+            ezlopi_create_uart_otel_trace(cmd_temp, start_time);
+            TRACE_E("ending--------------");
             }
         }
         else

@@ -54,7 +54,7 @@ typedef struct s_otel_trace
     char *method;
     char *msg_subclass;
 
-    const char *name;
+    char *name;
     e_otel_kind_t kind;
 
     uint32_t tick_count;
