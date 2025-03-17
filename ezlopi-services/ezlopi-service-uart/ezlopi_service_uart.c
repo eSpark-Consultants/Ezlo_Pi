@@ -281,12 +281,12 @@ static void ezpi_service_uart_task(void *arg);
  *
  * @return int 1 on success, 0 on failure
  */
-static int ezlopi_create_uart_otel_trace(e_ezlopi_uart_cmd_t cmd,uint64_t start_time);
+static int ezlopi_create_uart_otel_trace(e_ezlopi_uart_cmd_t cmd, uint64_t start_time);
 /**
  * @brief Convert UART command to string
  * @return const char*
  */
-static const char* ezlopi_uart_cmd_to_string(e_ezlopi_uart_cmd_t cmd);
+static const char *ezlopi_uart_cmd_to_string(e_ezlopi_uart_cmd_t cmd);
 #if !defined(CONFIG_IDF_TARGET_ESP32) && !defined(CONFIG_IDF_TARGET_ESP32C3)
 /**
  * @brief Function that will be called on incoming data at CDC
@@ -310,8 +310,7 @@ static const ezlopi_uart_cmd_map_t ezlopi_uart_cmd_map[] = {
     {EZPI_UART_CMD_UART_CONFIG, "Flasher UART Configuration Command"},
     {EZPI_UART_CMD_LOG_CONFIG, "Flasher Log Configuration Command"},
     {EZPI_UART_CMD_SET_PROV, "Flasher Set Provisioning Command"},
-    {EZPI_UART_CMD_MAX, "Flasher Maximum Command Value"}
-};
+    {EZPI_UART_CMD_MAX, "Flasher Maximum Command Value"}};
 
 #if !defined(CONFIG_IDF_TARGET_ESP32) && !defined(CONFIG_IDF_TARGET_ESP32C3)
 static uint8_t usb_rx_buffer[CONFIG_TINYUSB_CDC_RX_BUFSIZE - 1];
@@ -722,7 +721,7 @@ static void ezpi_service_uart_task(void *arg)
     vTaskDelete(NULL);
 }
 
-static const char* ezlopi_uart_cmd_to_string(e_ezlopi_uart_cmd_t cmd)
+static const char *ezlopi_uart_cmd_to_string(e_ezlopi_uart_cmd_t cmd)
 {
     for (size_t i = 0; i < EZLOPI_UART_CMD_MAP_SIZE; i++)
     {
@@ -740,7 +739,7 @@ static int ezlopi_create_uart_otel_trace(e_ezlopi_uart_cmd_t cmd, uint64_t start
     s_otel_trace_t *trace_obj = ezlopi_malloc(__FUNCTION__, sizeof(s_otel_trace_t));
     if (!trace_obj)
     {
-        return 0; 
+        return 0;
     }
 
     memset(trace_obj, 0, sizeof(s_otel_trace_t));
@@ -825,11 +824,9 @@ static int ezpi_service_uart_parser(const char *data)
                 TRACE_E("Invalid command!");
                 break;
             }
-
-            TRACE_E("starting-----------!");
-            ezlopi_create_uart_otel_trace(cmd_temp, start_time);
-            TRACE_E("ending--------------");
             }
+
+            ezlopi_create_uart_otel_trace(cmd_temp, start_time);
         }
         else
         {
