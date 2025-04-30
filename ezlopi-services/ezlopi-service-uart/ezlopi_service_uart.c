@@ -158,14 +158,14 @@ static int ezpi_service_uart_reset(cJSON *cj_root);
  * @param cj_root Pointer to the cj_root JSON coming from UART
  * @return int
  */
-static int ezpi_service_uart_set_uart_config(const cJSON *cj_root);
+static ezlopi_error_t ezpi_service_uart_set_uart_config(const cJSON *cj_root);
 /**
  * @brief Function to process log secerity command
  *
  * @param cj_root Pointer to the cj_root JSON coming from UART
  * @return int
  */
-static int ezpi_service_uart_process_log_severity(const cJSON *cj_root);
+static ezlopi_error_t ezpi_service_uart_process_log_severity(const cJSON *cj_root);
 /**
  * @brief Function to process provisioning command
  *
@@ -281,7 +281,7 @@ static void ezpi_service_uart_task(void *arg);
  *
  * @return int 1 on success, 0 on failure
  */
-static int ezlopi_create_uart_otel_trace(e_ezlopi_uart_cmd_t cmd, uint64_t start_time);
+static int ezlopi_create_uart_otel_trace(e_ezlopi_uart_cmd_t cmd, uint64_t start_time, ezlopi_error_t err_status);
 /**
  * @brief Convert UART command to string
  * @return const char*
@@ -370,9 +370,9 @@ void EZPI_SERV_uart_init(void)
 /*******************************************************************************
  *                          Static Function Definitions
  *******************************************************************************/
-static int ezpi_service_uart_reset(cJSON *cj_root)
+static ezlopi_error_t ezpi_service_uart_reset(cJSON *cj_root)
 {
-    int ret = 0;
+    ezlopi_error_t ret = EZPI_FAILED;
     cJSON *cj_sub_cmd = cJSON_GetObjectItem(__FUNCTION__, cj_root, ezlopi_sub_cmd_str);
     if (cj_sub_cmd)
     {
@@ -386,7 +386,7 @@ static int ezpi_service_uart_reset(cJSON *cj_root)
 
             const static char *reboot_response = "{\"cmd\":0, \"sub_cmd\":0,\"status\":1}";
             EZPI_SERV_uart_tx_data(strlen(reboot_response), (uint8_t *)reboot_response);
-            EZPI_core_reset_factory_restore();
+            ret = EZPI_core_reset_factory_restore();
             break;
         }
         case 1:
@@ -407,12 +407,13 @@ static int ezpi_service_uart_reset(cJSON *cj_root)
         cJSON_Delete(__FUNCTION__, cj_sub_cmd);
     }
 
+
     return ret;
 }
 
-static int ezpi_service_uart_set_uart_config(const cJSON *cj_root)
+static ezlopi_error_t ezpi_service_uart_set_uart_config(const cJSON *cj_root)
 {
-    int ret = 0;
+    ezlopi_error_t ret = 0;
 
     char parity[16];
     char flow_control[16];
@@ -440,12 +441,12 @@ static int ezpi_service_uart_set_uart_config(const cJSON *cj_root)
     CJSON_GET_VALUE_UINT32(cj_root, ezlopi_frame_size_str, frame_size);
     CJSON_GET_VALUE_STRING_BY_COPY(cj_root, ezlopi_flow_control_str, flow_control, sizeof(flow_control));
 
-    EZPI_core_nvs_read_baud(&baud_current);
-    EZPI_core_nvs_read_parity(&parity_val_current);
-    EZPI_core_nvs_read_start_bits(&start_bits_current);
-    EZPI_core_nvs_read_stop_bits(&stop_bits_current);
-    EZPI_core_nvs_read_frame_size(&frame_size_current);
-    EZPI_core_nvs_read_flow_control(&flow_control_current);
+    ret = EZPI_core_nvs_read_baud(&baud_current);
+    ret == EZPI_SUCCESS ? EZPI_core_nvs_read_parity(&parity_val_current) : ret;
+    ret == EZPI_SUCCESS ? EZPI_core_nvs_read_start_bits(&start_bits_current) : ret;
+    ret == EZPI_SUCCESS ? EZPI_core_nvs_read_stop_bits(&stop_bits_current) : ret;
+    ret == EZPI_SUCCESS ? EZPI_core_nvs_read_frame_size(&frame_size_current) : ret;
+    ret == EZPI_SUCCESS ? EZPI_core_nvs_read_flow_control(&flow_control_current) : ret;
 
     if (
         (baud_current != baud) ||
@@ -465,26 +466,26 @@ static int ezpi_service_uart_set_uart_config(const cJSON *cj_root)
             parity_val = (uint32_t)EZPI_core_info_name_to_parity(parity);
         }
 
-        EZPI_core_nvs_write_parity(parity_val);
+        ret == EZPI_SUCCESS ? EZPI_core_nvs_write_parity(parity_val) : ret;
 
         if (baud)
         {
-            EZPI_core_nvs_write_baud(baud);
+            ret == EZPI_SUCCESS ? EZPI_core_nvs_write_baud(baud) : ret;
         }
         else
         {
             baud = EZPI_SERV_UART_BAUD_DEFAULT;
-            EZPI_core_nvs_write_baud(baud);
+            ret == EZPI_SUCCESS ? EZPI_core_nvs_write_baud(baud) : ret;
         }
 
-        EZPI_core_nvs_write_start_bits(start_bits);
-        EZPI_core_nvs_write_stop_bits(stop_bits);
+        ret == EZPI_SUCCESS ? EZPI_core_nvs_write_start_bits(start_bits) : ret;
+        ret == EZPI_SUCCESS ? EZPI_core_nvs_write_stop_bits(stop_bits) : ret;
 
         if (!frame_size)
         {
             frame_size = EZPI_SERV_UART_FRAME_SIZE_DEFAULT;
         }
-        EZPI_core_nvs_write_frame_size(frame_size);
+        ret == EZPI_SUCCESS ? EZPI_core_nvs_write_frame_size(frame_size) : ret;
 
         if ('\0' != flow_control[0])
         {
@@ -492,7 +493,7 @@ static int ezpi_service_uart_set_uart_config(const cJSON *cj_root)
             TRACE_W("New Flow control: %d", flow_control_val);
         }
 
-        EZPI_core_nvs_write_flow_control(flow_control_val);
+        ret == EZPI_SUCCESS ? EZPI_core_nvs_write_flow_control(flow_control_val) : ret;
 
         const static char *reboot_response = "{\"cmd\":5, \"status\":1}";
         EZPI_SERV_uart_tx_data(strlen(reboot_response), (uint8_t *)reboot_response);
@@ -516,9 +517,9 @@ static int ezpi_service_uart_set_uart_config(const cJSON *cj_root)
     return ret;
 }
 
-static int ezpi_service_uart_process_log_severity(const cJSON *cj_root)
+static ezlopi_error_t ezpi_service_uart_process_log_severity(const cJSON *cj_root)
 {
-    int ret = 0;
+    ezlopi_error_t ret = EZPI_FAILED;
 
 #ifdef CONFIG_EZPI_UTIL_TRACE_EN
     int target = 0;
@@ -638,10 +639,15 @@ static ezlopi_error_t ezpi_service_uart_process_provisioning_api(const cJSON *cj
                 ezlopi_config_basic->device_type = NULL;
                 ezlopi_config_basic->local_key = local_key;
 
-                EZPI_core_factory_info_v3_set_basic(ezlopi_config_basic);
-                EZPI_core_factory_info_v3_set_ca_cert(cJSON_GetObjectItem(__FUNCTION__, cj_data, ezlopi_signing_ca_certificate_str));
-                EZPI_core_factory_info_v3_set_ssl_shared_key(cJSON_GetObjectItem(__FUNCTION__, cj_data, ezlopi_ssl_shared_key_str));
-                EZPI_core_factory_info_v3_set_ssl_private_key(cJSON_GetObjectItem(__FUNCTION__, cj_data, ezlopi_ssl_private_key_str));
+                if(
+                    EZPI_core_factory_info_v3_set_basic(ezlopi_config_basic) &&
+                    EZPI_core_factory_info_v3_set_ca_cert(cJSON_GetObjectItem(__FUNCTION__, cj_data, ezlopi_signing_ca_certificate_str)) &&
+                    EZPI_core_factory_info_v3_set_ssl_shared_key(cJSON_GetObjectItem(__FUNCTION__, cj_data, ezlopi_ssl_shared_key_str)) &&
+                    EZPI_core_factory_info_v3_set_ssl_private_key(cJSON_GetObjectItem(__FUNCTION__, cj_data, ezlopi_ssl_private_key_str))
+                ){
+                    ret = EZPI_SUCCESS;
+                }
+
 
                 uart_response = 1;
             }
@@ -733,7 +739,7 @@ static const char *ezlopi_uart_cmd_to_string(e_ezlopi_uart_cmd_t cmd)
     return "Unknown Command";
 }
 
-static int ezlopi_create_uart_otel_trace(e_ezlopi_uart_cmd_t cmd, uint64_t start_time)
+static int ezlopi_create_uart_otel_trace(e_ezlopi_uart_cmd_t cmd, uint64_t start_time, ezlopi_error_t err_status)
 {
 #ifdef CONFIG_EZPI_OPENTELEMETRY_ENABLE_TRACES
     s_otel_trace_t *trace_obj = ezlopi_malloc(__FUNCTION__, sizeof(s_otel_trace_t));
@@ -749,7 +755,13 @@ static int ezlopi_create_uart_otel_trace(e_ezlopi_uart_cmd_t cmd, uint64_t start
     trace_obj->end_time = EZPI_core_sntp_get_current_time_sec();
     trace_obj->free_heap = esp_get_free_heap_size();
     trace_obj->heap_watermark = esp_get_minimum_free_heap_size();
-    asprintf(&trace_obj->name, "uart response : %s", ezlopi_uart_cmd_to_string(cmd));
+    if(err_status == EZPI_SUCCESS){
+        asprintf(&trace_obj->name, "uart response success: %s", ezlopi_uart_cmd_to_string(cmd));
+    }
+    else{
+        asprintf(&trace_obj->name, "uart response failure: %s", ezlopi_uart_cmd_to_string(cmd));
+    }
+    
     trace_obj->tick_count = xTaskGetTickCount();
 
     if (0 == ezlopi_service_otel_add_trace_to_telemetry_queue(trace_obj))
@@ -775,48 +787,49 @@ static int ezpi_service_uart_parser(const char *data)
         cJSON *cj_cmd = cJSON_GetObjectItem(__FUNCTION__, cj_root, ezlopi_cmd_str);
         if (cj_cmd)
         {
+            ezlopi_error_t ret_status = EZPI_FAILED;
             uint8_t cmd_temp = cj_cmd->valuedouble;
 
             switch (cmd_temp)
             {
             case EZPI_UART_CMD_RESET:
             {
-                ezpi_service_uart_reset(cj_root);
+                ret_status = ezpi_service_uart_reset(cj_root);
                 break;
             }
             case EZPI_UART_CMD_INFO:
             {
-                ezpi_service_uart_get_info();
+                ret_status = ezpi_service_uart_get_info();
                 break;
             }
             case EZPI_UART_CMD_WIFI:
             {
-                ezpi_service_uart_set_wifi(data);
+                ret_status = ezpi_service_uart_set_wifi(data);
                 break;
             }
             case EZPI_UART_CMD_SET_CONFIG:
             {
-                ezpi_service_uart_set_config(data);
+                ret_status = ezpi_service_uart_set_config(data);
                 break;
             }
             case EZPI_UART_CMD_GET_CONFIG:
             {
-                ezpi_service_uart_get_config();
+                ret_status = ezpi_service_uart_get_config();
                 break;
             }
             case EZPI_UART_CMD_UART_CONFIG:
             {
-                ezpi_service_uart_set_uart_config(cj_root);
+                ret_status = ezpi_service_uart_set_uart_config(cj_root);
                 break;
             }
             case EZPI_UART_CMD_LOG_CONFIG:
             {
-                ezpi_service_uart_process_log_severity(cj_root);
+                ret_status = ezpi_service_uart_process_log_severity(cj_root);
                 break;
             }
             case EZPI_UART_CMD_SET_PROV:
             {
-                ezpi_service_uart_process_provisioning_api(cj_root);
+                ret_status = ezpi_service_uart_process_provisioning_api(cj_root);
                 break;
             }
             default:
@@ -826,7 +839,7 @@ static int ezpi_service_uart_parser(const char *data)
             }
             }
 
-            ezlopi_create_uart_otel_trace(cmd_temp, start_time);
+            ezlopi_create_uart_otel_trace(cmd_temp, start_time, ret_status);
         }
         else
         {

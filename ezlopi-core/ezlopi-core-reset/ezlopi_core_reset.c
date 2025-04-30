@@ -94,12 +94,15 @@ void EZPI_core_reset_reboot(void)
     esp_restart();
 }
 
-void EZPI_core_reset_factory_restore(void)
+ezlopi_error_t EZPI_core_reset_factory_restore(void)
 {
     ezlopi_error_t ret = EZPI_core_factory_info_v3_factory_reset();
     if (EZPI_SUCCESS == ret)
     {
         TRACE_I("FLASH RESET WAS DONE SUCCESSFULLY");
+    }
+    else{
+        return ret;
     }
 
     ret = EZPI_core_nvs_factory_reset();
@@ -108,9 +111,11 @@ void EZPI_core_reset_factory_restore(void)
         TRACE_I("NVS-RESET WAS DONE SUCCESSFULLY");
     }
 
+
     TRACE_S("factory reset done, rebooting now .............................................");
     vTaskDelay(2000 / portTICK_RATE_MS);
     EZPI_core_reset_reboot();
+    return ret;
 }
 /*******************************************************************************
  *                         Static Function Definitions

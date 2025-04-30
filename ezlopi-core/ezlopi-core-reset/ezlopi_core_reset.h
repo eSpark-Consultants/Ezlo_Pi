@@ -71,7 +71,7 @@ extern "C"
      * @brief Function to factory restore
      *
      */
-    void EZPI_core_reset_factory_restore(void);
+    ezlopi_error_t EZPI_core_reset_factory_restore(void);
 
 #ifdef __cplusplus
 }

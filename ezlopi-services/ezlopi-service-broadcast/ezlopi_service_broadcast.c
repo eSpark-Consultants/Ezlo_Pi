@@ -142,7 +142,6 @@ static void __broadcast_loop(void *arg)
                 char *method_str = ezlopi_service_otel_fetch_string_value_from_cjson(__broadcast_data->cj_broadcast_data, ezlopi_method_str);
                 char *msg_subclass_str = ezlopi_service_otel_fetch_string_value_from_cjson(__broadcast_data->cj_broadcast_data, ezlopi_msg_subclass_str);
                 char* name;
-                asprintf(&name, "cloud broadcast : %s", method_str);
 #if 0
                 cJSON *cj_id = cJSON_GetObjectItem(__FUNCTION__, __broadcast_data->cj_broadcast_data, ezlopi_id_str);
                 if (cj_id && cj_id->valuestring && (cj_id->type == cJSON_String) && cj_id->str_value_len)
@@ -186,11 +185,19 @@ static void __broadcast_loop(void *arg)
 #endif
 
 #endif
-                EZPI_core_broadcast_cjson(__broadcast_data->cj_broadcast_data);
+                ezlopi_error_t res_core_braodcast = EZPI_core_broadcast_cjson(__broadcast_data->cj_broadcast_data);
+
                 cJSON_Delete(__FUNCTION__, __broadcast_data->cj_broadcast_data);
                 __broadcast_data->cj_broadcast_data = NULL;
 
 #ifdef CONFIG_EZPI_OPENTELEMETRY_ENABLE_TRACES
+
+                if(res_core_braodcast == EZPI_SUCCESS){
+                    asprintf(&name, "cloud broadcast success: %s", method_str);
+                }else{
+                    asprintf(&name, "cloud broadcast failure: %s", method_str);
+                }
+
                 s_otel_trace_t *trace_obj = ezlopi_malloc(__FUNCTION__, sizeof(s_otel_trace_t));
                 if (trace_obj)
                 {

@@ -103,10 +103,10 @@ static int __provision_update(char *arg);
 static void __fetch_wss_endpoint(void *pv);
 
 static void __connection_upcall(bool connected);
-static void __message_process_cjson(cJSON *cj_request, time_t time_stamp);
+static ezlopi_error_t __message_process_cjson(cJSON *cj_request, time_t time_stamp);
 static int __message_upcall(char *payload, uint32_t len, time_t time_stamp);
 
-static int __send_cjson_data_to_nma_websocket(cJSON *cj_data);
+static ezlopi_error_t __send_cjson_data_to_nma_websocket(cJSON *cj_data);
 static ezlopi_error_t __send_str_data_to_nma_websocket(char *str_data);
 
 /*******************************************************************************
@@ -274,7 +274,7 @@ static void __fetch_wss_endpoint(void *pv)
                             id_str = ezlopi_service_otel_fetch_string_value_from_cjson(cj_request, ezlopi_id_str);
                             error_str = ezlopi_service_otel_fetch_string_value_from_cjson(cj_request, ezlopi_error_str);
                             method_str = ezlopi_service_otel_fetch_string_value_from_cjson(cj_request, ezlopi_method_str);
-                            asprintf(&name, "cloud response : %s", method_str);
+                            
 #endif
 
 #ifdef CONFIG_EZPI_OPENTELEMETRY_ENABLE_LOGS
@@ -284,8 +284,13 @@ static void __fetch_wss_endpoint(void *pv)
                             }
 #endif // CONFIG_EZPI_OPENTELEMETRY_ENABLE_LOGS
 
-                            __message_process_cjson(cj_request, rx_message->time_stamp);
+                            ezlopi_error_t msg_process_ret = __message_process_cjson(cj_request, rx_message->time_stamp);
                             cJSON_Delete(__FUNCTION__, cj_request);
+                            if(msg_process_ret == EZPI_SUCCESS){
+                                asprintf(&name, "cloud response success : %s", method_str);
+                            }else{
+                                asprintf(&name, "cloud response failure : %s", method_str);
+                            }
                         }
 
                         ezlopi_free(__FUNCTION__, rx_message->payload);
@@ -353,8 +358,9 @@ static void __fetch_wss_endpoint(void *pv)
     vTaskDelete(NULL);
 }
 
-static void __message_process_cjson(cJSON *cj_request, time_t time_stamp)
+static ezlopi_error_t __message_process_cjson(cJSON *cj_request, time_t time_stamp)
 {
+    ezlopi_error_t ret = EZPI_FAILED;  
     if (cj_request)
     {
         cJSON *cj_response = EZPI_core_api_consume_cjson(__FUNCTION__, cj_request, time_stamp);
@@ -367,7 +373,7 @@ static void __message_process_cjson(cJSON *cj_request, time_t time_stamp)
         if (cj_response)
         {
             cJSON_AddNumberToObject(__FUNCTION__, cj_response, ezlopi_msg_id_str, message_counter);
-            __send_cjson_data_to_nma_websocket(cj_response);
+            ret = __send_cjson_data_to_nma_websocket(cj_response);
             cJSON_Delete(__FUNCTION__, cj_response);
 
 #ifdef CONFIG_EZPI_UTIL_TRACE_EN
@@ -380,6 +386,8 @@ static void __message_process_cjson(cJSON *cj_request, time_t time_stamp)
 #endif
         }
     }
+
+    return ret;
 }
 
 static int __message_upcall(char *payload, uint32_t len, time_t time_stamp)
@@ -421,9 +429,9 @@ static int __message_upcall(char *payload, uint32_t len, time_t time_stamp)
     return ret;
 }
 
-static int __send_cjson_data_to_nma_websocket(cJSON *cj_data)
+static ezlopi_error_t __send_cjson_data_to_nma_websocket(cJSON *cj_data)
 {
-    int ret = 0;
+    ezlopi_error_t ret = EZPI_FAILED;
 
     if (cj_data)
     {
@@ -441,7 +449,7 @@ static int __send_cjson_data_to_nma_websocket(cJSON *cj_data)
 
                 if (EZPI_SUCCESS == ret)
                 {
-                    TRACE_S("NMA-send:\r\n%s", data_buffer);
+                        TRACE_S("NMA-send:\r\n%s", data_buffer);
                 }
                 else
                 {
